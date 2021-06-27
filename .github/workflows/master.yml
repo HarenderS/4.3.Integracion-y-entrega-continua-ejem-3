@@ -17,8 +17,4 @@ jobs:
       with:
         java-version: 11
     - name: Run unitary test
-      run: mvn -B -Dtest=BookServiceUnitaryTest test
-    - name: Run REST test
-      run: mvn -B -Dtest=RestTest test
-    - name: Run e2e test
-      run: mvn -B -Dtest=SeleniumTest test
+      run: mvn -B test
