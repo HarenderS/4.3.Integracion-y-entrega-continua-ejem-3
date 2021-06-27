@@ -43,7 +43,7 @@ jobs:
         run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
       - name: Push image to DockerHub
         run: |
-          IMAGE_VERSION=$(date +'%Y%m%d.%H%M%S')
+          IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version-DforceStdout)
           docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
         
