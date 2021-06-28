@@ -19,6 +19,8 @@ jobs:
       run: |
         COMMIT_COUNT= git rev-list --count HEAD ^develop
         echo $COMMIT_COUNT
+        echo git rev-list --count HEAD
+        echo git rev-list --count --all HEAD
         mvn versions:set -DnewVersion=0.3.0.RC git$COMMIT_COUNT
         mvn --batch-mode deploy
       env:
