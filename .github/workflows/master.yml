@@ -15,8 +15,7 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
-      - name: Pull image
-        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/$PULL_IMAGE_NAME
+      
       - name: Login to DockerHub
         run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
       - name: Push image to DockerHub tag:version
@@ -31,5 +30,5 @@ jobs:
         run: |
           IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
           IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
-          docker tag $IMAGE_USER/$PULL_IMAGE_NAME ghcr.io/$IMAGE_USER/$PUSH_IMAGE_NAME:$IMAGE_VERSION
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/$PULL_IMAGE_NAME ghcr.io/$IMAGE_USER/$PUSH_IMAGE_NAME:$IMAGE_VERSION
           docker push ghcr.io/$IMAGE_USER/$PUSH_IMAGE_NAME:$IMAGE_VERSION
