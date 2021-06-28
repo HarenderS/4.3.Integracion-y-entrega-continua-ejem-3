@@ -10,19 +10,20 @@ jobs:
     name: Publish in DockerHub and GitHub Registry
     runs-on: ubuntu-20.04
     env:
-      IMAGE_NAME: items
+      PULL_IMAGE_NAME: items:rc
+      PUSH_IMAGE_NAME: items
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
       - name: Login to DockerHub
         run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
       - name: Pull image
-        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:rc
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/$PULL_IMAGE_NAME
       - name: Push image to DockerHub tag:version
         run: |
           IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
-              docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
+          docker tag $PULL_IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$PUSH_IMAGE_NAME:$IMAGE_VERSION
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$PUSH_IMAGE_NAME:$IMAGE_VERSION
           
       - name: Login to GitHub Docker Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -30,5 +31,5 @@ jobs:
         run: |
           IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
           IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
-          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
-          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+          docker tag $PULL_IMAGE_NAME ghcr.io/$IMAGE_USER/$PUSH_IMAGE_NAME:$IMAGE_VERSION
+          docker push ghcr.io/$IMAGE_USER/$PUSH_IMAGE_NAME:$IMAGE_VERSION
