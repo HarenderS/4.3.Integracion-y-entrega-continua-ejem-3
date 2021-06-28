@@ -44,5 +44,7 @@ jobs:
       - name: Push image to DockerHub tag:version-dev
         run: |
           IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version-DforceStdout)
-          echo "$IMAGE_VERSION"
+          echo $IMAGE_VERSION
+          echo $(mvn -q help:evaluate -Dexpression=project.version-DforceStdout)
+          echo $(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
       
