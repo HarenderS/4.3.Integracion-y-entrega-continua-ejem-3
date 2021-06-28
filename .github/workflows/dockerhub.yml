@@ -29,6 +29,7 @@ jobs:
     needs: [build]
     env:
       IMAGE_NAME: items
+      IMAGE_VERSION: ""
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
@@ -37,13 +38,28 @@ jobs:
         with:
           name: target
           path: target
+        run: IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version-DforceStdout)
       - name: Build image
         run: docker build -t $IMAGE_NAME .
       - name: Login to DockerHub
         run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
-      - name: Push image to DockerHub
+      - name: Push image to DockerHub tag:version-dev
         run: |
-          IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version-DforceStdout)
-          docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
-        
+          docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION-dev
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION-dev
+      - name: Push image to DockerHub tag:dev
+        run: |
+          docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:dev
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:dev
+      - name: Login to GitHub Docker Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Push image to GitHub Container Registry tag:version-dev
+        run: |
+          IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
+          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+      - name: Push image to GitHub Container Registry tag:dev
+        run: |
+          IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
+          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:dev
+          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:dev
