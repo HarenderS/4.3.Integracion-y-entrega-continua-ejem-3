@@ -21,7 +21,7 @@ jobs:
 
     - name: Publish package
       run: |
-        COMMIT_COUNT=$(git rev-list --count ${{ steps.extract_branch.outputs.branch }})
+        COMMIT_COUNT=$(git rev-list --count HEAD)
         mvn versions:set -DnewVersion=0.3.0.RC$COMMIT_COUNT
         mvn --batch-mode deploy
       env:
