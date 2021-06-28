@@ -1,4 +1,4 @@
-name: Test Unitary and Rest - PR on develop & push on release
+name: Test Unitary and Rest - push on release
 
 on:
   push: 
