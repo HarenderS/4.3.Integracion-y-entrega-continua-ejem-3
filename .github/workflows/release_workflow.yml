@@ -1,4 +1,4 @@
-name: Test Unitary and Rest - push on release
+name: Test push on release
 
 on:
   push: 
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [build_and_publish_maven]
     env:
-      IMAGE_NAME: books
+      IMAGE_NAME: items
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
