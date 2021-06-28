@@ -21,6 +21,7 @@ jobs:
         echo $COMMIT_COUNT
         echo $(git rev-list --count HEAD)
         echo $(git rev-list --count --all HEAD)
+        echo ${{ github.head.count }}
         mvn versions:set -DnewVersion=0.3.0.RC$COMMIT_COUNT
         mvn --batch-mode deploy
       env:
