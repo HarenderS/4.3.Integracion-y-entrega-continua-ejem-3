@@ -18,7 +18,7 @@ jobs:
         java-version: 11
     - name: Run unitary test
       run: mvn -B test
-  build:
+  build_and_publish_maven:
     name: Build Java application
     runs-on: ubuntu-20.04
     steps:
@@ -36,10 +36,14 @@ jobs:
         name: target
         path: target
         retention-days: 1
+    - name: Publish package
+      run: mvn --batch-mode deploy
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   publish_in_dockerhub:
     name: Publish in DockerHub
     runs-on: ubuntu-20.04
-    needs: [build]
+    needs: [build_and_publish_maven]
     env:
       IMAGE_NAME: items
     steps:
