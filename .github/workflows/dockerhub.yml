@@ -23,7 +23,7 @@ jobs:
         path: target
         retention-days: 1
 
-  publish_in_dockerhub:
+  publish_in_dockerhub_and_packages:
     name: Publish in DockerHub
     runs-on: ubuntu-20.04
     needs: [build]
@@ -56,7 +56,7 @@ jobs:
         run: |
           IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
           IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
-          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION-dev
           docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
       - name: Push image to GitHub Container Registry tag:dev
         run: |
