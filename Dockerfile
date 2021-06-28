@@ -1,4 +1,4 @@
-FROM openjdk:11-jre
+FROM FROM maven:3.6.3-openjdk-11
 
 COPY target/*.jar /opt/webapp.jar
 
