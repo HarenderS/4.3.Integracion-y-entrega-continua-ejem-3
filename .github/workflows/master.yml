@@ -22,7 +22,7 @@ jobs:
     name: Publish in DockerHub and GitHub Registry
     runs-on: ubuntu-20.04
     env:
-      IMAGE_NAME: items
+      IMAGE_NAME: items:rc
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
