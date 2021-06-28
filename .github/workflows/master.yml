@@ -18,3 +18,32 @@ jobs:
         java-version: 11
     - name: Run unitary test
       run: mvn -B test
+  publish_in_dockerhub_and_git_registry:
+    name: Publish in DockerHub and GitHub Registry
+    runs-on: ubuntu-20.04
+    env:
+      IMAGE_NAME: books
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Pull image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:rc .
+      - name: Login to DockerHub
+        run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
+      - name: Run Test
+        run: |
+          docker run -d -p 80:80 $IMAGE_NAME ./mvnw test
+      - name: Push image to DockerHub tag:version
+        run: |
+          IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
+              docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
+          
+      - name: Login to GitHub Docker Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Push image to GitHub Container Registry tag:version
+        run: |
+          IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
+          IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
+          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
