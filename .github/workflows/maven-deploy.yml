@@ -14,15 +14,12 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: extract_branch
 
     - name: Publish package
       run: |
-        COMMIT_COUNT=$(git rev-list --count HEAD ^${{ steps.extract_branch.outputs.branch }})
-        mvn versions:set -DnewVersion=0.3.0.RC$COMMIT_COUNT
+        COMMIT_COUNT=$(git rev-list --count HEAD)
+        echo $COMMIT_COUNT
+        mvn versions:set -DnewVersion=0.3.0.RC$(git rev-list --count HEAD)
         mvn --batch-mode deploy
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
