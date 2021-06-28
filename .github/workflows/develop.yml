@@ -70,7 +70,7 @@ jobs:
           IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
           IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
           docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION-dev
-          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION-dev
       - name: Push image to GitHub Container Registry tag:dev
         run: |
           IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
