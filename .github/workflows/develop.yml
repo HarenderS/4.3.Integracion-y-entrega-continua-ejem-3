@@ -42,6 +42,15 @@ jobs:
         run: docker build -t $IMAGE_NAME .
       - name: Login to DockerHub
         run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
+      - name: Push image to DockerHub tag:version-dev
+        run: |
+          IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)-dev
+              docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
+      - name: Push image to DockerHub tag:dev
+        run: |
+          docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:dev
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:dev
       - name: Run Test
         run: |
           docker run -d -p 80:80 $IMAGE_NAME ./mvnw test
