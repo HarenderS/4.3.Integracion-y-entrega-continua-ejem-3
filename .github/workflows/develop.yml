@@ -1,14 +1,12 @@
 name: Develop workflow
 
 on:
-  push:
-    branches: [ develop ]
   workflow_dispatch:
 
 jobs:
-  test-all:
-    name: Build Java application and run test
-    runs-on: ubuntu-latest
+  build_and_publish_maven:
+    name: Build Java application
+    runs-on: ubuntu-20.04
     steps:
     - name: Clone repository
       uses: actions/checkout@v2
@@ -16,5 +14,54 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
-    - name: Run unitary test
-      run: mvn -B test
+    - name: Build native with Maven
+      run: mvn -B package
+    - name: Upload jar for next job
+      uses: actions/upload-artifact@v2
+      with:
+        name: target
+        path: target
+        retention-days: 1
+  publish_in_dockerhub:
+    name: Publish in DockerHub
+    runs-on: ubuntu-20.04
+    needs: [build_and_publish_maven]
+    env:
+      IMAGE_NAME: items
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Download jar from previous job
+        uses: actions/download-artifact@v2
+        with:
+          name: target
+          path: target
+      - name: Build image
+        run: docker build -t $IMAGE_NAME .
+      - name: Login to DockerHub
+        run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
+      - name: Run Test
+        run: |
+          docker run -d -p 80:80 $IMAGE_NAME ./mvnw test
+      - name: Push image to DockerHub tag:version-dev
+        run: |
+          IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)-dev
+              docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_VERSION
+      - name: Push image to DockerHub tag:dev
+        run: |
+          docker tag $IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:dev
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:dev
+      - name: Login to GitHub Docker Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Push image to GitHub Container Registry tag:version-dev
+        run: |
+          IMAGE_VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)-dev
+          IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
+          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:$IMAGE_VERSION
+      - name: Push image to GitHub Container Registry tag:dev
+        run: |
+          IMAGE_USER=$(echo ${{ github.repository_owner }} | awk '{print tolower($0)}')
+          docker tag $IMAGE_NAME ghcr.io/$IMAGE_USER/$IMAGE_NAME:dev
+          docker push ghcr.io/$IMAGE_USER/$IMAGE_NAME:dev
